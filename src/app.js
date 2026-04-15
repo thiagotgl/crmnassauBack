@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import usuariosRoutes from './routes/usuarios.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import leadsRoutes from './routes/leads.routes.js';
@@ -11,6 +12,7 @@ import { renderSwaggerUi } from './docs/swaggerUi.js';
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
