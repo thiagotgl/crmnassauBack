@@ -280,6 +280,19 @@ export function renderSwaggerUi({ title, specUrl }) {
         background: var(--blue-700);
       }
 
+      .swagger-ui .opblock.opblock-put {
+        border-color: rgba(47, 132, 184, 0.24);
+        background: rgba(234, 244, 251, 0.96);
+      }
+
+      .swagger-ui .opblock.opblock-put .opblock-summary-method {
+        background: var(--blue-500);
+      }
+
+      .swagger-ui .opblock.opblock-put .opblock-summary {
+        border-color: rgba(47, 132, 184, 0.2);
+      }
+
       .swagger-ui .btn.authorize,
       .swagger-ui .btn.execute {
         background: var(--orange-500);

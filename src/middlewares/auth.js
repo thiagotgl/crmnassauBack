@@ -1,10 +1,11 @@
 import jwt from 'jsonwebtoken';
+import { authErrorMessages } from '../constants/errorMessages.js';
 
 export function auth(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).json({ error: 'Token não informado' });
+    return res.status(401).json({ error: authErrorMessages.tokenNaoInformado });
   }
 
   const token = authHeader.split(' ')[1];
@@ -12,9 +13,9 @@ export function auth(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = decoded; // 🔥 aqui alimenta o onlyAdmin
+    req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Token inválido' });
+    return res.status(401).json({ error: authErrorMessages.tokenInvalido });
   }
 }

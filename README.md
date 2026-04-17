@@ -53,11 +53,39 @@ O servidor sobe por padrao em `http://localhost:3000`.
 
 - `npm run dev`: inicia com `nodemon`.
 - `npm run start`: inicia em modo normal.
+- `npm run test`: executa a suite de testes unitarios.
+- `npm run test:watch`: executa os testes em modo watch.
+- `npm run test:coverage`: gera cobertura dos testes.
 - `npm run prisma:generate`: gera o client do Prisma.
 - `npm run prisma:migrate`: cria/aplica migracoes no banco local.
 - `npm run prisma:deploy`: aplica migracoes sem prompt.
 - `npm run prisma:seed`: cria ou atualiza o usuario admin local.
 - `npm run prisma:studio`: abre o Prisma Studio.
+
+## Padrao da documentacao da API
+
+Toda nova rota deve ser documentada em `src/docs/openapi.js` seguindo o mesmo padrao do Swagger ja existente.
+
+- Definir `tag` e `summary` claros.
+- Informar `security` com `bearerAuth` quando a rota exigir token.
+- Documentar `requestBody` com schema reutilizavel em `components.schemas`.
+- Documentar respostas de sucesso e erro com descricoes objetivas.
+- Reutilizar os helpers e schemas padronizados do arquivo para manter consistencia visual e estrutural.
+
+O visual da documentacao em `/docs` e customizado em `src/docs/swaggerUi.js`, entao novos metodos HTTP devem seguir esse mesmo padrao de estilo.
+
+## Estrutura de testes
+
+A base de testes unitarios fica na pasta `tests/` com a seguinte organizacao:
+
+- `tests/setup`: setup global do runner.
+- `tests/helpers`: mocks utilitarios de `req` e `res`.
+- `tests/mocks`: mocks reutilizaveis, como Prisma.
+- `tests/unit/services`: testes de regra de negocio.
+- `tests/unit/controllers`: testes da camada HTTP.
+- `tests/unit/middlewares`: testes de autenticacao e autorizacao.
+
+O runner configurado e o `Vitest`, definido em `vitest.config.js`.
 
 ## Bootstrap de acesso
 
