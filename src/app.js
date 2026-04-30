@@ -4,6 +4,7 @@ import cors from 'cors';
 import usuariosRoutes from './routes/usuarios.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import leadsRoutes from './routes/leads.routes.js';
+import empresasRoutes from './routes/empresas.routes.js';
 import { renderApiDocs } from './docs/apiDocs.js';
 import { openApiDocument } from './docs/openapi.js';
 import { renderSwaggerUi } from './docs/swaggerUi.js';
@@ -47,6 +48,7 @@ app.get('/docs', (req, res) => {
 app.use('/usuarios', usuariosRoutes);
 app.use('/auth', authRoutes);
 app.use('/leads', leadsRoutes);
+app.use('/empresas', empresasRoutes);
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);

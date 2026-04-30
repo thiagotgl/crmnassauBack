@@ -335,6 +335,54 @@ const schemas = {
     properties: {
       success: { type: 'boolean', example: true }
     }
+  },
+  Empresa: {
+    type: 'object',
+    properties: {
+      id: { type: 'integer', example: 1 },
+      nome: { type: 'string', example: 'Empresa XPTO' },
+      cnpj: { type: 'string', nullable: true, example: '12345678000199' },
+      telefone: { type: 'string', nullable: true, example: '81999999999' },
+      email: { type: 'string', nullable: true, example: 'contato@xpto.com' },
+      ativo: { type: 'boolean', example: true },
+      criadoEm: { type: 'string', format: 'date-time' },
+      atualizadoEm: { type: 'string', format: 'date-time' },
+      _count: {
+        type: 'object',
+        properties: {
+          leads: { type: 'integer', example: 5 },
+          contatos: { type: 'integer', example: 2 }
+        }
+      }
+    }
+  },
+  EmpresaDetalhada: {
+    type: 'object',
+    properties: {
+      id: { type: 'integer', example: 1 },
+      nome: { type: 'string', example: 'Empresa XPTO' },
+      cnpj: { type: 'string', nullable: true, example: '12345678000199' },
+      telefone: { type: 'string', nullable: true, example: '81999999999' },
+      email: { type: 'string', nullable: true, example: 'contato@xpto.com' },
+      ativo: { type: 'boolean', example: true },
+      contatos: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer', example: 1 },
+            nome: { type: 'string', example: 'Joao Silva' },
+            email: { type: 'string', example: 'joao@xpto.com' }
+          }
+        }
+      },
+      leads: {
+        type: 'array',
+        items: {
+          $ref: '#/components/schemas/Lead'
+        }
+      }
+    }
   }
 };
 
@@ -516,6 +564,35 @@ const paths = {
         401: errorResponse('Token ausente ou invalido.')
       }
     }
+  },
+  '/empresas': {
+    get: {
+      tags: ['Empresas'],
+      summary: 'Lista todas as empresas cadastradas',
+      security: bearerSecurity,
+      responses: {
+        200: jsonResponse('Lista de empresas.', {
+          type: 'array',
+          items: { $ref: '#/components/schemas/Empresa' }
+        }),
+        401: errorResponse('Token ausente ou invalido.')
+      }
+    }
+  },
+  '/empresas/{id}': {
+    get: {
+      tags: ['Empresas'],
+      summary: 'Busca os detalhes de uma empresa por ID',
+      security: bearerSecurity,
+      parameters: [idPathParameter],
+      responses: {
+        200: jsonResponse('Detalhes da empresa.', {
+          $ref: '#/components/schemas/EmpresaDetalhada'
+        }),
+        401: errorResponse('Token ausente ou invalido.'),
+        404: errorResponse('Empresa nao encontrada.')
+      }
+    }
   }
 };
 
@@ -536,7 +613,8 @@ export const openApiDocument = {
   tags: [
     { name: 'Auth', description: 'Autenticacao e emissao de token JWT.' },
     { name: 'Usuarios', description: 'Gestao de usuarios da plataforma.' },
-    { name: 'Leads', description: 'Operacoes do funil de leads.' }
+    { name: 'Leads', description: 'Operacoes do funil de leads.' },
+    { name: 'Empresas', description: 'Consulta de empresas e clientes.' }
   ],
   components: {
     securitySchemes: {

@@ -33,3 +33,9 @@ export const usuarioErrorMessages = {
   perfilSemPermissao: 'Voce so pode editar o proprio usuario, exceto se for admin',
   tipoSemPermissao: 'Somente admin pode alterar o tipo do usuario'
 };
+
+export const empresaErrorMessages = {
+  empresaNaoEncontrada: 'Empresa nao encontrada',
+  erroListar: 'Erro ao listar empresas',
+  erroBuscar: 'Erro ao buscar empresa'
+};
