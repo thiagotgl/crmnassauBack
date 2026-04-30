@@ -14,6 +14,8 @@ export function renderSwaggerUi({ title, specUrl }) {
         --blue-100: #eaf4fb;
         --orange-500: #f28c28;
         --orange-100: #fff1e4;
+        --red-500: #e53e3e;
+        --red-100: #fff5f5;
         --white: #ffffff;
         --ink: #12324a;
         --muted: #607b90;
@@ -291,6 +293,19 @@ export function renderSwaggerUi({ title, specUrl }) {
 
       .swagger-ui .opblock.opblock-put .opblock-summary {
         border-color: rgba(47, 132, 184, 0.2);
+      }
+      
+      .swagger-ui .opblock.opblock-delete {
+        border-color: rgba(229, 62, 62, 0.2);
+        background: rgba(255, 245, 245, 0.96);
+      }
+
+      .swagger-ui .opblock.opblock-delete .opblock-summary-method {
+        background: var(--red-500);
+      }
+
+      .swagger-ui .opblock.opblock-delete .opblock-summary {
+        border-color: rgba(229, 62, 62, 0.18);
       }
 
       .swagger-ui .btn.authorize,
