@@ -25,6 +25,23 @@ export async function listar(req, res) {
   }
 }
 
+export async function buscarPorId(req, res) {
+  try {
+    const id = Number(req.params.id);
+    const usuario = await service.buscarUsuarioPorId(id);
+
+    res.json(usuario);
+  } catch (err) {
+    console.error(err);
+
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+
+    res.status(500).json({ error: usuarioErrorMessages.erroBuscar });
+  }
+}
+
 export async function atualizarStatusAtivo(req, res) {
   try {
     const id = Number(req.params.id);
@@ -66,15 +83,21 @@ export async function atualizarSenha(req, res) {
 export async function atualizarPerfil(req, res) {
   try {
     const id = Number(req.params.id);
-    const podeEditarOutroUsuario = req.user?.tipo === 'admin';
+    const usuarioAdmin = req.user?.tipo === 'admin';
 
-    if (req.user.id !== id && !podeEditarOutroUsuario) {
+    if (req.user.id !== id && !usuarioAdmin) {
       return res.status(403).json({
         error: usuarioErrorMessages.perfilSemPermissao
       });
     }
 
-    const usuario = await service.atualizarPerfilUsuario(id, req.body);
+    if (req.body?.tipo !== undefined && !usuarioAdmin) {
+      return res.status(403).json({
+        error: usuarioErrorMessages.tipoSemPermissao
+      });
+    }
+
+    const usuario = await service.atualizarPerfilUsuario(id, req.body, usuarioAdmin);
 
     res.json(usuario);
   } catch (err) {

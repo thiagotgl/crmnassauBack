@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   atualizarPerfilUsuario: vi.fn(),
   atualizarStatusAtivoUsuario: vi.fn(),
   atualizarSenhaUsuario: vi.fn(),
+  buscarUsuarioPorId: vi.fn(),
   criarUsuario: vi.fn(),
   listarUsuarios: vi.fn()
 }));
@@ -12,12 +13,14 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../../../src/services/usuarios.service.js', () => ({
   criarUsuario: mocks.criarUsuario,
   listarUsuarios: mocks.listarUsuarios,
+  buscarUsuarioPorId: mocks.buscarUsuarioPorId,
   atualizarPerfilUsuario: mocks.atualizarPerfilUsuario,
   atualizarStatusAtivoUsuario: mocks.atualizarStatusAtivoUsuario,
   atualizarSenhaUsuario: mocks.atualizarSenhaUsuario
 }));
 
 import {
+  buscarPorId,
   atualizarPerfil,
   atualizarStatusAtivo,
   atualizarSenha
@@ -27,6 +30,7 @@ describe('usuarios.controller', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     mocks.criarUsuario.mockReset();
+    mocks.buscarUsuarioPorId.mockReset();
     mocks.atualizarPerfilUsuario.mockReset();
     mocks.atualizarStatusAtivoUsuario.mockReset();
     mocks.atualizarSenhaUsuario.mockReset();
@@ -96,6 +100,52 @@ describe('usuarios.controller', () => {
     });
   });
 
+  it('busca usuario por id quando service retorna sucesso', async () => {
+    mocks.buscarUsuarioPorId.mockResolvedValue({
+      id: 5,
+      nome: 'Ana',
+      email: 'ana@email.com',
+      tipo: 'cliente',
+      ativo: true
+    });
+
+    const req = createMockRequest({
+      params: { id: '5' },
+      user: { id: 1, tipo: 'admin' }
+    });
+    const res = createMockResponse();
+
+    await buscarPorId(req, res);
+
+    expect(mocks.buscarUsuarioPorId).toHaveBeenCalledWith(5);
+    expect(res.json).toHaveBeenCalledWith({
+      id: 5,
+      nome: 'Ana',
+      email: 'ana@email.com',
+      tipo: 'cliente',
+      ativo: true
+    });
+  });
+
+  it('repassa 404 quando usuario por id nao existe', async () => {
+    const error = new Error('Usuario nao encontrado');
+    error.statusCode = 404;
+    mocks.buscarUsuarioPorId.mockRejectedValue(error);
+
+    const req = createMockRequest({
+      params: { id: '999' },
+      user: { id: 1, tipo: 'admin' }
+    });
+    const res = createMockResponse();
+
+    await buscarPorId(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'Usuario nao encontrado'
+    });
+  });
+
   it('retorna 403 quando o usuario tenta editar outro perfil', async () => {
     const req = createMockRequest({
       params: { id: '10' },
@@ -139,7 +189,7 @@ describe('usuarios.controller', () => {
       nome: 'Maria Silva',
       email: 'maria@email.com',
       cpf: '12345678900'
-    });
+    }, false);
     expect(res.json).toHaveBeenCalledWith({
       id: 3,
       nome: 'Maria Silva',
@@ -148,12 +198,13 @@ describe('usuarios.controller', () => {
     });
   });
 
-  it('permite que admin atualize o perfil de outro usuario', async () => {
+  it('permite que admin atualize o perfil e tipo de outro usuario', async () => {
     mocks.atualizarPerfilUsuario.mockResolvedValue({
       id: 10,
       nome: 'Outro Usuario',
       email: 'outro@email.com',
-      cpf: '12345678900'
+      cpf: '12345678900',
+      tipo: 'supervisor'
     });
 
     const req = createMockRequest({
@@ -162,7 +213,8 @@ describe('usuarios.controller', () => {
       body: {
         nome: 'Outro Usuario',
         email: 'outro@email.com',
-        cpf: '12345678900'
+        cpf: '12345678900',
+        tipo: 'supervisor'
       }
     });
     const res = createMockResponse();
@@ -172,13 +224,32 @@ describe('usuarios.controller', () => {
     expect(mocks.atualizarPerfilUsuario).toHaveBeenCalledWith(10, {
       nome: 'Outro Usuario',
       email: 'outro@email.com',
-      cpf: '12345678900'
-    });
+      cpf: '12345678900',
+      tipo: 'supervisor'
+    }, true);
     expect(res.json).toHaveBeenCalledWith({
       id: 10,
       nome: 'Outro Usuario',
       email: 'outro@email.com',
-      cpf: '12345678900'
+      cpf: '12345678900',
+      tipo: 'supervisor'
+    });
+  });
+
+  it('retorna 403 quando usuario comum tenta alterar o proprio tipo', async () => {
+    const req = createMockRequest({
+      params: { id: '3' },
+      user: { id: 3, tipo: 'vendedor' },
+      body: { tipo: 'admin' }
+    });
+    const res = createMockResponse();
+
+    await atualizarPerfil(req, res);
+
+    expect(mocks.atualizarPerfilUsuario).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'Somente admin pode alterar o tipo do usuario'
     });
   });
 

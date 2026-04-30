@@ -24,6 +24,7 @@ vi.mock('bcrypt', () => ({
 
 import {
   criarUsuario,
+  buscarUsuarioPorId,
   atualizarPerfilUsuario,
   atualizarStatusAtivoUsuario,
   atualizarSenhaUsuario
@@ -33,6 +34,7 @@ describe('usuarios.service', () => {
   beforeEach(() => {
     mocks.prismaMock.usuario.create.mockReset();
     mocks.prismaMock.usuario.findUnique.mockReset();
+    mocks.prismaMock.usuario.findMany.mockReset();
     mocks.prismaMock.usuario.update.mockReset();
     mocks.bcryptHash.mockReset();
   });
@@ -185,6 +187,51 @@ describe('usuarios.service', () => {
     });
   });
 
+  it('busca usuario por id com select seguro', async () => {
+    mocks.prismaMock.usuario.findUnique.mockResolvedValue({
+      id: 5,
+      nome: 'Ana',
+      email: 'ana@email.com',
+      cpf: '12345678900',
+      tipo: 'cliente',
+      ativo: true
+    });
+
+    const result = await buscarUsuarioPorId(5);
+
+    expect(mocks.prismaMock.usuario.findUnique).toHaveBeenCalledWith({
+      where: { id: 5 },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        cpf: true,
+        tipo: true,
+        ativo: true,
+        autenticadorAtivo: true,
+        criadoEm: true,
+        atualizadoEm: true
+      }
+    });
+    expect(result).toEqual({
+      id: 5,
+      nome: 'Ana',
+      email: 'ana@email.com',
+      cpf: '12345678900',
+      tipo: 'cliente',
+      ativo: true
+    });
+  });
+
+  it('retorna 404 quando usuario por id nao existe', async () => {
+    mocks.prismaMock.usuario.findUnique.mockResolvedValue(null);
+
+    await expect(buscarUsuarioPorId(999)).rejects.toMatchObject({
+      statusCode: 404,
+      message: 'Usuario nao encontrado'
+    });
+  });
+
   it('atualiza o campo ativo quando recebe boolean', async () => {
     mocks.prismaMock.usuario.update.mockResolvedValue({
       id: 2,
@@ -221,7 +268,7 @@ describe('usuarios.service', () => {
     });
   });
 
-  it('atualiza apenas nome, email e cpf no perfil do usuario', async () => {
+  it('atualiza apenas nome, email e cpf no perfil do usuario quando tipo nao e permitido', async () => {
     mocks.prismaMock.usuario.update.mockResolvedValue({
       id: 4,
       nome: 'Joao',
@@ -259,6 +306,57 @@ describe('usuarios.service', () => {
     });
   });
 
+  it('atualiza o tipo do usuario quando permitido', async () => {
+    mocks.prismaMock.usuario.update.mockResolvedValue({
+      id: 4,
+      nome: 'Joao',
+      email: 'joao@email.com',
+      cpf: '12345678900',
+      tipo: 'supervisor'
+    });
+
+    const result = await atualizarPerfilUsuario(4, {
+      tipo: ' supervisor '
+    }, true);
+
+    expect(mocks.prismaMock.usuario.update).toHaveBeenCalledWith({
+      where: { id: 4 },
+      data: {
+        tipo: 'supervisor'
+      },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        cpf: true,
+        tipo: true,
+        ativo: true,
+        autenticadorAtivo: true,
+        dataConfirmacao2FA: true,
+        criadoEm: true,
+        atualizadoEm: true
+      }
+    });
+    expect(result).toEqual({
+      id: 4,
+      nome: 'Joao',
+      email: 'joao@email.com',
+      cpf: '12345678900',
+      tipo: 'supervisor'
+    });
+  });
+
+  it('rejeita atualizacao de tipo invalido quando tipo e permitido', async () => {
+    await expect(
+      atualizarPerfilUsuario(4, {
+        tipo: 'gerente'
+      }, true)
+    ).rejects.toMatchObject({
+      statusCode: 400,
+      message: 'O campo tipo deve ser um valor valido de TipoUsuario'
+    });
+  });
+
   it('rejeita atualizacao de perfil quando nenhum campo permitido e enviado', async () => {
     await expect(
       atualizarPerfilUsuario(4, {
@@ -274,7 +372,7 @@ describe('usuarios.service', () => {
   it('rejeita atualizacao de perfil quando o body nao e enviado', async () => {
     await expect(atualizarPerfilUsuario(4, undefined)).rejects.toMatchObject({
       statusCode: 400,
-      message: 'O corpo da requisicao deve conter nome, email ou cpf'
+      message: 'O corpo da requisicao deve conter nome, email, cpf ou tipo'
     });
   });
 

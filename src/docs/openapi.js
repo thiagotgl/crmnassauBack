@@ -109,6 +109,24 @@ const schemas = {
       atualizadoEm: { type: 'string', format: 'date-time' }
     }
   },
+  UsuarioDetalhado: {
+    type: 'object',
+    properties: {
+      id: { type: 'integer', example: 1 },
+      nome: { type: 'string', example: 'Maria' },
+      email: { type: 'string', format: 'email', example: 'maria@email.com' },
+      cpf: { type: 'string', example: '12345678900' },
+      tipo: {
+        type: 'string',
+        enum: ['admin', 'vendedor', 'cliente', 'supervisor'],
+        example: 'vendedor'
+      },
+      ativo: { type: 'boolean', example: true },
+      autenticadorAtivo: { type: 'boolean', example: false },
+      criadoEm: { type: 'string', format: 'date-time' },
+      atualizadoEm: { type: 'string', format: 'date-time' }
+    }
+  },
   CreateUsuarioRequest: {
     type: 'object',
     required: ['nome', 'cpf', 'email', 'senha', 'tipo'],
@@ -177,7 +195,13 @@ const schemas = {
     properties: {
       nome: { type: 'string', example: 'Maria Silva' },
       cpf: { type: 'string', example: '12345678900' },
-      email: { type: 'string', format: 'email', example: 'maria@email.com' }
+      email: { type: 'string', format: 'email', example: 'maria@email.com' },
+      tipo: {
+        type: 'string',
+        enum: ['admin', 'vendedor', 'cliente', 'supervisor'],
+        example: 'supervisor',
+        description: 'Somente admin pode alterar este campo.'
+      }
     }
   },
   Lead: {
@@ -362,6 +386,19 @@ const paths = {
     }
   },
   '/usuarios/{id}': {
+    get: {
+      tags: ['Usuarios'],
+      summary: 'Busca um usuario por id',
+      security: bearerSecurity,
+      parameters: [idPathParameter],
+      responses: {
+        200: jsonResponse('Usuario encontrado.', {
+          $ref: '#/components/schemas/UsuarioDetalhado'
+        }),
+        401: errorResponse('Token ausente ou invalido.'),
+        404: errorResponse('Usuario nao encontrado.')
+      }
+    },
     put: {
       tags: ['Usuarios'],
       summary: 'Atualiza os dados do proprio usuario ou de outro usuario quando for admin',
@@ -374,7 +411,7 @@ const paths = {
         }),
         400: errorResponse('Nenhum campo valido foi enviado.'),
         401: errorResponse('Token ausente ou invalido.'),
-        403: errorResponse('O usuario autenticado so pode editar o proprio cadastro, exceto se for admin.')
+        403: errorResponse('O usuario autenticado so pode editar o proprio cadastro, exceto se for admin. Somente admin pode alterar tipo.')
       }
     },
   },

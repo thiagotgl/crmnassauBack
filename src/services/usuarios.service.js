@@ -123,6 +123,19 @@ export async function listarUsuarios() {
   });
 }
 
+export async function buscarUsuarioPorId(id) {
+  const usuario = await prisma.usuario.findUnique({
+    where: { id },
+    select: usuarioSelectSeguro
+  });
+
+  if (!usuario) {
+    throw createHttpError(usuarioErrorMessages.usuarioNaoEncontrado, 404);
+  }
+
+  return usuario;
+}
+
 export async function atualizarStatusAtivoUsuario(id, ativo) {
   if (typeof ativo !== 'boolean') {
     throw createHttpError(usuarioErrorMessages.ativoInvalido, 400);
@@ -157,7 +170,7 @@ export async function atualizarSenhaUsuario(id, senha) {
   }
 }
 
-export async function atualizarPerfilUsuario(id, data) {
+export async function atualizarPerfilUsuario(id, data, podeAtualizarTipo = false) {
   if (!data || typeof data !== 'object') {
     throw createHttpError(usuarioErrorMessages.corpoPerfilInvalido, 400);
   }
@@ -169,6 +182,16 @@ export async function atualizarPerfilUsuario(id, data) {
     if (data[campo] !== undefined) {
       updateData[campo] = data[campo];
     }
+  }
+
+  if (podeAtualizarTipo && data.tipo !== undefined) {
+    const tipo = typeof data.tipo === 'string' ? data.tipo.trim() : '';
+
+    if (!tiposUsuarioValidos.includes(tipo)) {
+      throw createHttpError(usuarioErrorMessages.tipoInvalido, 400);
+    }
+
+    updateData.tipo = tipo;
   }
 
   if (Object.keys(updateData).length === 0) {
