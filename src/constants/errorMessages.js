@@ -42,3 +42,16 @@ export const empresaErrorMessages = {
   cnpjEmUso: 'Ja existe uma empresa cadastrada com este CNPJ',
   erroExcluirComVinculos: 'Nao e possivel excluir uma empresa que possui leads ou contatos vinculados'
 };
+
+export const contatoErrorMessages = {
+  contatoNaoEncontrado: 'Contato nao encontrado',
+  erroListar: 'Erro ao listar contatos',
+  erroBuscar: 'Erro ao buscar contato',
+  erroCriar: 'Erro ao criar contato',
+  erroAtualizar: 'Erro ao atualizar contato',
+  erroExcluir: 'Erro ao excluir contato',
+  nomeObrigatorio: 'O nome do contato e obrigatorio',
+  cpfEmUso: 'Ja existe um contato cadastrado com este CPF',
+  empresaNaoEncontrada: 'A empresa informada nao existe',
+  erroExcluirComVinculos: 'Nao e possivel excluir um contato que possui leads vinculados'
+};

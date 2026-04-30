@@ -403,6 +403,60 @@ const schemas = {
       email: { type: 'string', format: 'email', example: 'novo@email.com' },
       ativo: { type: 'boolean', example: true }
     }
+  },
+  Contato: {
+    type: 'object',
+    properties: {
+      id: { type: 'integer', example: 1 },
+      nome: { type: 'string', example: 'Joao Silva' },
+      cpf: { type: 'string', example: '12345678901' },
+      email: { type: 'string', format: 'email', example: 'joao@email.com' },
+      telefone: { type: 'string', example: '81999998888' },
+      empresaId: { type: 'integer', nullable: true, example: 1 },
+      ativo: { type: 'boolean', example: true },
+      empresa: {
+        type: 'object',
+        nullable: true,
+        properties: {
+          id: { type: 'integer' },
+          nome: { type: 'string' }
+        }
+      }
+    }
+  },
+  ContatoDetalhado: {
+    allOf: [
+      { $ref: '#/components/schemas/Contato' },
+      {
+        type: 'object',
+        properties: {
+          empresa: { $ref: '#/components/schemas/Empresa' },
+          leads: { type: 'array', items: { $ref: '#/components/schemas/Lead' } }
+        }
+      }
+    ]
+  },
+  CreateContatoRequest: {
+    type: 'object',
+    required: ['nome'],
+    properties: {
+      nome: { type: 'string', example: 'Joao Silva' },
+      cpf: { type: 'string', example: '123.456.789-01' },
+      email: { type: 'string', format: 'email', example: 'joao@email.com' },
+      telefone: { type: 'string', example: '81999998888' },
+      empresaId: { type: 'integer', nullable: true, example: 1 }
+    }
+  },
+  UpdateContatoRequest: {
+    type: 'object',
+    properties: {
+      nome: { type: 'string', example: 'Joao Silva Editado' },
+      cpf: { type: 'string', example: '12345678901' },
+      email: { type: 'string', format: 'email', example: 'novo.joao@email.com' },
+      telefone: { type: 'string', example: '81977776666' },
+      empresaId: { type: 'integer', nullable: true, example: 2 },
+      ativo: { type: 'boolean', example: true }
+    }
   }
 };
 
@@ -656,6 +710,78 @@ const paths = {
       }
     }
   },
+  '/contatos': {
+    get: {
+      tags: ['Contatos'],
+      summary: 'Lista contatos',
+      security: bearerSecurity,
+      responses: {
+        200: jsonResponse('Lista de contatos.', {
+          type: 'array',
+          items: { $ref: '#/components/schemas/Contato' }
+        }),
+        401: errorResponse('Token ausente ou invalido.')
+      }
+    },
+    post: {
+      tags: ['Contatos'],
+      summary: 'Cria um contato',
+      security: bearerSecurity,
+      requestBody: jsonRequestBody('#/components/schemas/CreateContatoRequest'),
+      responses: {
+        200: jsonResponse('Contato criado.', {
+          $ref: '#/components/schemas/Contato'
+        }),
+        400: errorResponse('Nome obrigatorio.'),
+        401: errorResponse('Token ausente ou invalido.'),
+        404: errorResponse('Empresa nao encontrada.'),
+        409: errorResponse('CPF ja cadastrado.')
+      }
+    }
+  },
+  '/contatos/{id}': {
+    get: {
+      tags: ['Contatos'],
+      summary: 'Busca um contato por ID',
+      security: bearerSecurity,
+      parameters: [idPathParameter],
+      responses: {
+        200: jsonResponse('Detalhes do contato.', {
+          $ref: '#/components/schemas/ContatoDetalhado'
+        }),
+        401: errorResponse('Token ausente ou invalido.'),
+        404: errorResponse('Contato nao encontrado.')
+      }
+    },
+    put: {
+      tags: ['Contatos'],
+      summary: 'Atualiza um contato',
+      security: bearerSecurity,
+      parameters: [idPathParameter],
+      requestBody: jsonRequestBody('#/components/schemas/UpdateContatoRequest'),
+      responses: {
+        200: jsonResponse('Contato atualizado.', {
+          $ref: '#/components/schemas/Contato'
+        }),
+        400: errorResponse('Erro de validacao.'),
+        401: errorResponse('Token ausente ou invalido.'),
+        404: errorResponse('Contato ou Empresa nao encontrados.'),
+        409: errorResponse('CPF ja esta sendo usado por outro contato.')
+      }
+    },
+    delete: {
+      tags: ['Contatos'],
+      summary: 'Exclui um contato',
+      security: bearerSecurity,
+      parameters: [idPathParameter],
+      responses: {
+        204: { description: 'Contato excluido.' },
+        400: errorResponse('Nao e possivel excluir contato com vinculos (leads).'),
+        401: errorResponse('Token ausente ou invalido.'),
+        404: errorResponse('Contato nao encontrado.')
+      }
+    }
+  }
 };
 
 export const openApiDocument = {
