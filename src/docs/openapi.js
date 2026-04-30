@@ -383,6 +383,26 @@ const schemas = {
         }
       }
     }
+  },
+  CreateEmpresaRequest: {
+    type: 'object',
+    required: ['nome'],
+    properties: {
+      nome: { type: 'string', example: 'Nova Empresa XPTO' },
+      cnpj: { type: 'string', example: '12345678000199' },
+      telefone: { type: 'string', example: '81988887777' },
+      email: { type: 'string', format: 'email', example: 'contato@empresa.com' }
+    }
+  },
+  UpdateEmpresaRequest: {
+    type: 'object',
+    properties: {
+      nome: { type: 'string', example: 'Empresa XPTO Editada' },
+      cnpj: { type: 'string', example: '12345678000199' },
+      telefone: { type: 'string', example: '81988887777' },
+      email: { type: 'string', format: 'email', example: 'novo@email.com' },
+      ativo: { type: 'boolean', example: true }
+    }
   }
 };
 
@@ -577,6 +597,20 @@ const paths = {
         }),
         401: errorResponse('Token ausente ou invalido.')
       }
+    },
+    post: {
+      tags: ['Empresas'],
+      summary: 'Cria uma empresa',
+      security: bearerSecurity,
+      requestBody: jsonRequestBody('#/components/schemas/CreateEmpresaRequest'),
+      responses: {
+        200: jsonResponse('Empresa criada.', {
+          $ref: '#/components/schemas/Empresa'
+        }),
+        400: errorResponse('O nome da empresa e obrigatorio.'),
+        401: errorResponse('Token ausente ou invalido.'),
+        409: errorResponse('Ja existe uma empresa cadastrada com este CNPJ.')
+      }
     }
   },
   '/empresas/{id}': {
@@ -592,8 +626,36 @@ const paths = {
         401: errorResponse('Token ausente ou invalido.'),
         404: errorResponse('Empresa nao encontrada.')
       }
+    },
+    put: {
+      tags: ['Empresas'],
+      summary: 'Atualiza uma empresa',
+      security: bearerSecurity,
+      parameters: [idPathParameter],
+      requestBody: jsonRequestBody('#/components/schemas/UpdateEmpresaRequest'),
+      responses: {
+        200: jsonResponse('Empresa atualizada.', {
+          $ref: '#/components/schemas/Empresa'
+        }),
+        400: errorResponse('Erro de validacao (ex: nome vazio).'),
+        401: errorResponse('Token ausente ou invalido.'),
+        404: errorResponse('Empresa nao encontrada.'),
+        409: errorResponse('CNPJ ja esta sendo usado por outra empresa.')
+      }
+    },
+    delete: {
+      tags: ['Empresas'],
+      summary: 'Exclui uma empresa',
+      security: bearerSecurity,
+      parameters: [idPathParameter],
+      responses: {
+        204: { description: 'Empresa excluida.' },
+        400: errorResponse('Nao e possivel excluir empresa com vinculos (leads/contatos).'),
+        401: errorResponse('Token ausente ou invalido.'),
+        404: errorResponse('Empresa nao encontrada.')
+      }
     }
-  }
+  },
 };
 
 export const openApiDocument = {

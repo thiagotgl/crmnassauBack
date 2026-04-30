@@ -37,5 +37,8 @@ export const usuarioErrorMessages = {
 export const empresaErrorMessages = {
   empresaNaoEncontrada: 'Empresa nao encontrada',
   erroListar: 'Erro ao listar empresas',
-  erroBuscar: 'Erro ao buscar empresa'
+  erroBuscar: 'Erro ao buscar empresa',
+  nomeObrigatorio: 'O nome da empresa e obrigatorio',
+  cnpjEmUso: 'Ja existe uma empresa cadastrada com este CNPJ',
+  erroExcluirComVinculos: 'Nao e possivel excluir uma empresa que possui leads ou contatos vinculados'
 };
